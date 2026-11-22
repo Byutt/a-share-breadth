@@ -1,0 +1,17 @@
+{
+  "trade_date": null,
+  "is_sample": true,
+  "source_note": "用户提供的截图示例，未标注交易日期；仅用于演示，不代表今天的市场数据",
+  "total": 5222,
+  "up": 297,
+  "down": 4895,
+  "flat": 30,
+  "up_volume": 226709892,
+  "down_volume": 829854471,
+  "flat_volume": 14385025,
+  "total_volume": 1070949388,
+  "up_amount": 257382877305,
+  "down_amount": 1158368081000,
+  "flat_amount": 5513933536,
+  "total_amount": 1421264891841
+}
