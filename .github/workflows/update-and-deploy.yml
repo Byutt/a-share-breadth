@@ -1,0 +1,73 @@
+name: 更新A股市场宽度并发布网站
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '回填多少个交易日（首次建议60，日常1）'
+        type: choice
+        required: false
+        default: '60'
+        options: ['1', '5', '20', '60', '120']
+  schedule:
+    # UTC: 北京时间每个工作日 18:10 和 20:10
+    - cron: '10 10 * * 1-5'
+    - cron: '10 12 * * 1-5'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: a-share-breadth-pages
+  cancel-in-progress: false
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 采集数据（密钥只在 GitHub Secrets 中）
+        env:
+          STOCK_API_TOKEN: ${{ secrets.STOCK_API_TOKEN }}
+          STOCK_API_URL: ${{ vars.STOCK_API_URL || 'http://tus.sxdata.top/tu_share/' }}
+        run: |
+          DAYS="${{ github.event.inputs.days || '1' }}"
+          python scripts/update_data.py --days "$DAYS"
+
+      - name: 持久保存历史数据
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/history.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data: update daily A-share breadth"
+            git push
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
