@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#090e1a" />
+  <meta name="description" content="A股市场宽度监测：涨跌家数、成交量、成交额、ADR、TRIN及历史走势，每个交易日收盘更新。" />
+  <title>A股市场宽度 · Breadth Lab</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Breadth Lab 返回顶部">
+        <span class="brand-glyph"><span></span><span></span><span></span><span></span></span>
+        <span class="brand-copy"><strong>BRE<span>AD</span>TH LAB</strong><small>A 股市场宽度监测</small></span>
+      </a>
+      <div class="header-actions">
+        <div class="session-pill"><span class="status-dot"></span><span id="sessionStatus">数据加载中</span></div>
+        <button class="button ghost" type="button" id="refreshButton" title="重新获取网站已发布的最新数据">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.5 9A7.2 7.2 0 0 1 18 6l2 6M4 12l2 6a7.2 7.2 0 0 0 12.5-3"/></svg>刷新数据
+        </button>
+      </div>
+    </header>
+
+    <main id="top">
+      <div class="data-banner" id="dataBanner" role="status">正在读取市场数据…</div>
+      <section class="intro-section">
+        <div class="intro-text">
+          <div class="eyebrow"><span class="eyebrow-line"></span> MARKET BREADTH INTELLIGENCE</div>
+          <h1>读懂市场的<span>真实宽度<span class="title-punct">.</span></span></h1>
+          <p>不只看指数涨跌。用全市场上涨 / 下跌家数、资金成交分布和 TRIN，观察市场内部正在发生什么。</p>
+        </div>
+        <div class="asof-block"><div class="asof-label">数据对应交易日</div><div class="asof-date" id="asofDate">--</div><div class="asof-sub" id="asofSub">交易日收盘后更新 · 北京时间</div></div>
+      </section>
+
+      <section class="summary-row" aria-label="关键统计指标">
+        <article class="kpi-card dominant"><div class="kpi-top"><span>全市场股票数</span><span class="micro-chip">A-SHARES</span></div><div class="kpi-value" id="totalCount">--</div><div class="kpi-foot" id="totalDescription">当日有行情的股票</div><div class="kpi-deco">01</div></article>
+        <article class="kpi-card"><div class="kpi-top"><span>上涨家数</span><span class="direction up">↑</span></div><div class="kpi-value red" id="upCount">--</div><div class="kpi-foot"><span class="mini-marker red-bg"></span> 上涨占比 <strong class="red" id="upPct">--</strong></div></article>
+        <article class="kpi-card"><div class="kpi-top"><span>下跌家数</span><span class="direction down">↓</span></div><div class="kpi-value green" id="downCount">--</div><div class="kpi-foot"><span class="mini-marker green-bg"></span> 下跌占比 <strong class="green" id="downPct">--</strong></div></article>
+        <article class="kpi-card"><div class="kpi-top"><span>平盘家数</span><span class="direction flat">—</span></div><div class="kpi-value" id="flatCount">--</div><div class="kpi-foot"><span class="mini-marker amber-bg"></span> 平盘占比 <strong id="flatPct">--</strong></div></article>
+      </section>
+
+      <section class="grid two-grid wide-first">
+        <article class="panel breadth-panel">
+          <div class="panel-head"><div><div class="section-kicker">01 / MARKET PARTICIPATION</div><h2>上涨 / 下跌分布</h2></div><span class="caption-tag">家数宽度</span></div>
+          <div class="breadth-visual">
+            <div class="donut" id="breadthDonut" role="img" aria-label="上涨下跌家数分布图"><div class="donut-hole"><span class="donut-small">下跌占比</span><strong class="green" id="donutPct">--</strong><small id="breadthLabel">--</small></div></div>
+            <div class="breadth-details">
+              <div class="legend-row"><span class="legend-name"><i class="legend-mark red-bg"></i> 上涨</span><strong id="legendUpNum">--</strong><span class="legend-percent red" id="legendUpPct">--</span></div>
+              <div class="legend-row"><span class="legend-name"><i class="legend-mark green-bg"></i> 下跌</span><strong id="legendDownNum">--</strong><span class="legend-percent green" id="legendDownPct">--</span></div>
+              <div class="legend-row"><span class="legend-name"><i class="legend-mark amber-bg"></i> 平盘</span><strong id="legendFlatNum">--</strong><span class="legend-percent" id="legendFlatPct">--</span></div>
+              <div class="breadth-meter"><span id="meterUp"></span><span id="meterFlat"></span><span id="meterDown"></span></div>
+              <div class="breadth-caption" id="breadthSummary">等待市场数据</div>
+            </div>
+          </div>
+        </article>
+        <article class="panel ratio-panel">
+          <div class="panel-head"><div><div class="section-kicker">02 / ADVANCE-DECLINE</div><h2>市场广度 ADR</h2></div><span class="caption-tag">上涨 / 下跌</span></div>
+          <div class="ratio-main" id="adrDisplay">--<span>%</span></div>
+          <p class="ratio-hint">每 100 家下跌股票，对应约 <strong id="adrPer100">--</strong> 家上涨</p>
+          <div class="formula"><span>ADR = 上涨家数 ÷ 下跌家数 × 100%</span></div>
+          <div class="ratio-footnote">此处 ADR 为单日涨跌家数比，不是累计多日 ADR 指标。</div>
+        </article>
+      </section>
+
+      <section class="grid two-grid">
+        <article class="panel split-panel">
+          <div class="panel-head"><div><div class="section-kicker">03 / VOLUME DISTRIBUTION</div><h2>成交量结构</h2></div><span class="caption-tag">单位：手</span></div>
+          <div class="big-amount" id="totalVolume">--</div>
+          <div class="big-amount-label">全市场总成交量</div>
+          <div class="stack-bar" id="volumeBar" aria-label="上涨下跌平盘成交量占比"></div>
+          <div class="split-grid"><div><span class="small-label">上涨成交量</span><strong class="red" id="upVolumePct">--</strong><small id="upVolume">--</small></div><div><span class="small-label">下跌成交量</span><strong class="green" id="downVolumePct">--</strong><small id="downVolume">--</small></div></div>
+          <div class="minor-label" id="flatVolumeLabel">平盘成交量：--</div>
+        </article>
+        <article class="panel split-panel">
+          <div class="panel-head"><div><div class="section-kicker">04 / TURNOVER DISTRIBUTION</div><h2>成交额结构</h2></div><span class="caption-tag">单位：人民币</span></div>
+          <div class="big-amount" id="totalAmount">--</div>
+          <div class="big-amount-label">全市场总成交额</div>
+          <div class="stack-bar" id="amountBar" aria-label="上涨下跌平盘成交额占比"></div>
+          <div class="split-grid"><div><span class="small-label">上涨成交额</span><strong class="red" id="upAmountPct">--</strong><small id="upAmount">--</small></div><div><span class="small-label">下跌成交额</span><strong class="green" id="downAmountPct">--</strong><small id="downAmount">--</small></div></div>
+          <div class="minor-label" id="flatAmountLabel">平盘成交额：--</div>
+        </article>
+      </section>
+
+      <section class="trin-section">
+        <div class="section-heading"><div><div class="section-kicker">05 / ARMS INDEX</div><h2>TRIN 阿姆斯指数</h2></div><div class="trin-method">TRIN = (上涨家数 / 下跌家数) ÷ (上涨成交量 / 下跌成交量)</div></div>
+        <div class="grid trin-grid"><article class="trin-card"><div class="trin-card-top"><span>TRIN · 量</span><span class="trin-symbol">VOL</span></div><strong id="trinVol">--</strong><div class="trin-visual"><span id="trinVolPointer"></span></div><small>按成交量（手）计算</small></article><article class="trin-card"><div class="trin-card-top"><span>TRIN · 额</span><span class="trin-symbol">AMT</span></div><strong id="trinAmt">--</strong><div class="trin-visual"><span id="trinAmtPointer"></span></div><small>按成交金额（元）计算</small></article><article class="trin-card interpretation"><span class="interpretation-label">如何理解 TRIN？</span><p>TRIN ＜ 1 说明上涨股的<strong>平均成交活跃度</strong>相对更高；TRIN ＞ 1 则相反。</p><small>它不是简单的“低于 1 就看多”信号，必须同时结合涨跌家数、行情和历史水平判断。</small></article></div>
+      </section>
+
+      <section class="panel trend-panel" id="history">
+        <div class="panel-head trend-head"><div><div class="section-kicker">06 / HISTORICAL MONITOR</div><h2>市场宽度历史趋势</h2><p class="subtext">追踪极端情绪，观察市场宽度是否改善</p></div><div class="period-switch" role="group" aria-label="图表时段"><button class="active" data-period="5" type="button">5日</button><button data-period="20" type="button">20日</button><button data-period="60" type="button">60日</button><button data-period="all" type="button">全部</button></div></div>
+        <div class="trend-controls"><button class="metric active" data-metric="down_ratio" type="button"><span class="metric-dot dot-green"></span>下跌家数占比</button><button class="metric" data-metric="adr" type="button"><span class="metric-dot dot-red"></span>ADR</button><button class="metric" data-metric="trin_volume" type="button"><span class="metric-dot dot-violet"></span>TRIN-量</button><button class="metric" data-metric="trin_amount" type="button"><span class="metric-dot dot-blue"></span>TRIN-额</button></div>
+        <div class="chart-wrap" id="chartWrap"><div id="historyChart" class="history-chart"></div><div id="chartTip" class="chart-tooltip" hidden></div></div>
+        <div class="chart-caption">日线收盘数据 · 历史记录在首次回填后显示 · 不使用模拟历史走势</div>
+      </section>
+
+      <section class="panel table-panel"><div class="panel-head table-head"><div><div class="section-kicker">07 / DAILY ARCHIVE</div><h2>历史交易日明细</h2></div><button class="button ghost export-button" id="exportButton" type="button">↓ 导出 CSV</button></div><div class="table-overflow"><table><thead><tr><th>交易日期</th><th>上涨</th><th>下跌</th><th>平盘</th><th>上涨占比</th><th>下跌占比</th><th>成交额</th><th>TRIN-量</th><th>TRIN-额</th></tr></thead><tbody id="historyTable"><tr><td colspan="9">尚无历史记录</td></tr></tbody></table></div><div class="table-footer" id="tableFooter">等待数据更新</div></section>
+
+      <section class="definition-box"><div><div class="section-kicker">METHODOLOGY / 统计说明</div><h3>数据口径与自动更新</h3></div><p>覆盖 Tushare <code>daily</code> 返回的沪、深、北交易所当日有效 A 股记录；涨跌由收盘价与除权昨收价比较确定，停牌无日线记录的股票不计入。成交量单位为手（1 手＝100 股），成交额由接口千元转换为人民币元。每日交易日收盘后自动采集；遇非交易日沿用最近交易日数据。截图中的“额价差”缺少可验证定义，暂不自动推算。</p></section>
+    </main>
+    <footer><div><span class="footer-brand">BREADTH LAB</span> <span>· 市场宽度研究工具</span></div><div>仅供数据研究，不构成投资建议 · Source: Tushare</div></footer>
+  </div>
+  <script src="./app.js" defer></script>
+</body>
+</html>
