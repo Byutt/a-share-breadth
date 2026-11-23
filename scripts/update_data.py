@@ -9,6 +9,7 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -16,7 +17,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "data" / "history.json"
 TOKEN = os.getenv("STOCK_API_TOKEN", "").strip()
-URL = os.getenv("STOCK_API_URL", "http://tus.sxdata.top/tu_share/").strip()
+URL = os.getenv("STOCK_API_URL", "https://tus.sxdata.top/tu_share/").strip()
 WAIT = float(os.getenv("STOCK_API_WAIT_SECONDS", "2"))
 CN = ZoneInfo("Asia/Shanghai")
 CODE_RE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$")
@@ -66,6 +67,8 @@ def trading_dates(number):
         dates = [d for d in dates if d < today.strftime("%Y%m%d")]
     if not dates:
         raise ValueError("Trading calendar returned no trading dates")
+    if len(dates) < number:
+        raise ValueError(f"Trading calendar returned only {len(dates)} of {number} requested dates")
     return dates[-number:]
 
 
@@ -122,10 +125,9 @@ def main():
     if not 1 <= args.days <= 250:
         parser.error("--days must be within 1..250")
     if not TOKEN:
-        print("STOCK_API_TOKEN missing. Showing clearly marked screenshot demo until secret is configured.")
-        return
-    if URL.startswith("http://"):
-        print("Warning: relay HTTP transport does not encrypt the API token. Prefer HTTPS if available.", file=sys.stderr)
+        raise SystemExit("STOCK_API_TOKEN missing. Configure the repository secret before collecting data.")
+    if urllib.parse.urlsplit(URL).scheme != "https":
+        raise SystemExit("STOCK_API_URL must use HTTPS to protect the API token.")
     dates = trading_dates(args.days)
     now = dt.datetime.now(CN)
     if args.days == 1 and dates[-1] == now.strftime("%Y%m%d") and now.hour < 17:

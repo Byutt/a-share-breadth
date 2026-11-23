@@ -18,16 +18,16 @@
 1. 将本文件夹的内容上传到一个 **新的 GitHub 仓库**，默认分支命名为 `main`。确保 `.github/workflows/update-and-deploy.yml` 也一起上传。建议仓库设为 **Private**（但请检查账户的 Pages 功能是否支持该私有仓库）；使用免费账户时，最简单是 Public 仓库，而且 **千万不要上传 Token**。
 2. 仓库 `Settings → Secrets and variables → Actions → Secrets → New repository secret`，添加：
    - `STOCK_API_TOKEN`：填你提供的 Tushare 中转 Token；建议优先使用有额度的非特权 Token，密钥内容不要发到公开仓库。
-   - 可选：`Settings → Secrets and variables → Actions → Variables` 添加 `STOCK_API_URL`，设置服务商提供的 HTTPS 地址（如果有）。默认按服务商给的 HTTP 地址。
+   - 可选：`Settings → Secrets and variables → Actions → Variables` 添加 `STOCK_API_URL`，默认尝试同一中转域名的 HTTPS 地址。若连接失败，请填服务商确认支持的 HTTPS 地址。
 3. `Settings → Pages → Build and deployment → Source` 选择 **GitHub Actions**。仓库 Actions 需要允许工作流有写权限：`Settings → Actions → General → Workflow permissions → Read and write permissions`。确保 Actions 可部署 Pages。
-4. `Actions` 页面选择「更新A股市场宽度并发布网站」→ `Run workflow` → 首次将 `days` 设为 `60`（约 60 个交易日历史回填）；先看日志检查接口返回。
+4. `Actions` 页面选择「更新A股市场宽度并发布网站」→ `Run workflow` → 历史为空时，推送或定时任务会自动回填 60 个交易日。手动首次运行时将 `days` 设为 `60`（约 60 个交易日历史回填）；先看日志检查接口返回。
 5. 发布成功后，Pages 页面会显示网址，通常格式为 `https://<GitHub用户名>.github.io/<仓库名>/`。之后只要保留定时工作流即可每天自动更新，无需手动传 Excel。
 
 **自动刷新时间**：周一至周五北京时间 18:10、20:10 各检查一次；节假日读取交易日历，最新数据会保持在最近交易日。定时任务由 GitHub 执行，可能延迟；每日行情正常在 15:00–16:00 入库。第一次初始化历史回填按 2 秒的请求间隔、单请求 60 秒超时、最多 4 次尝试，以控制限流。历史回填 60 日需要远多于一次请求的时间。
 
 ### 安全提醒
 
-你提供的第三方中转接口原始地址是 `http://`，**不是加密 HTTPS**。即使放在 GitHub Secrets 中，采集程序访问 HTTP 时 Token 仍可能在传输链路上暴露。如果服务商提供 HTTPS，应立刻将 `STOCK_API_URL` 配为 HTTPS；否则请自行评估第三方中转和链路风险。建议不要把已经公开传播过的密钥继续使用。
+采集程序要求接口使用 HTTPS。缺少密钥或接口数据时，工作流会报错，便于区分真实更新与截图演示。
 
 ## 本地查看
 
