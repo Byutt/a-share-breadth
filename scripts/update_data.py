@@ -60,6 +60,10 @@ def trading_dates(number):
         "end_date": today.strftime("%Y%m%d")
     }, "cal_date,is_open")
     dates = sorted({str(r["cal_date"]) for r in rows if str(r.get("is_open")) in ("1", "1.0", "True")})
+    # Exclude today before the end-of-day feed is expected to be ready.
+    # This also keeps historical backfills from failing during market hours.
+    if dt.datetime.now(CN).hour < 17:
+        dates = [d for d in dates if d < today.strftime("%Y%m%d")]
     if not dates:
         raise ValueError("Trading calendar returned no trading dates")
     return dates[-number:]
